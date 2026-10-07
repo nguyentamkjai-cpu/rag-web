@@ -3,176 +3,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Trợ lý tổng quát</title>
+  <title>Gia sư tiếng Anh</title>
   <style>
-    :root { --bg:#0e1210; --panel:#1a2218; --line:#31402c; --text:#e7f0e2; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
+    :root { --bg:#10140f; --panel:#1a2218; --line:#31402c; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(1000px 420px at 8% -10%, #24331d, var(--bg)); }
-    header, main { width:min(860px, calc(100% - 28px)); margin:0 auto; }
-    header { display:flex; justify-content:space-between; align-items:end; gap:12px; padding:28px 0 12px; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(980px 400px at 8% -10%, #24331d, var(--bg)); }
+    header, main { width:min(880px, calc(100% - 28px)); margin:0 auto; }
+    header { padding:26px 0 10px; display:flex; justify-content:space-between; align-items:end; gap:12px; }
     h1 { margin:0; font-size:28px; }
     .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
-    button, .ghost { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
+    .modes { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
     .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
-    main { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; min-height:70vh; display:flex; flex-direction:column; }
-    #log { flex:1; display:flex; flex-direction:column; gap:10px; overflow:auto; max-height:62vh; }
+    .ghost.on { color:var(--ink); background:var(--accent); border-color:var(--accent); }
+    main { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; min-height:72vh; display:flex; flex-direction:column; }
+    #log { flex:1; display:flex; flex-direction:column; gap:10px; overflow:auto; max-height:60vh; }
     .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.5; }
     .user { align-self:end; background:#2c3b22; max-width:85%; }
     .bot { background:#12180f; border:1px solid var(--line); }
-    .src { color:var(--muted); font-size:12px; margin-top:8px; }
     form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:12px; }
-    textarea, input { font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
-    textarea { resize:vertical; }
-    dialog { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:16px; width:min(480px, 92vw); }
-    dialog label { display:grid; gap:4px; margin:10px 0; font-size:14px; }
-    .hint { color:var(--muted); font-size:13px; }
+    textarea { resize:vertical; font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   </style>
 </head>
 <body>
   <header>
     <div>
-      <p class="eyebrow">Thay trang hỏi tài liệu</p>
-      <h1>Trợ lý tổng quát</h1>
+      <p class="eyebrow">Chạy trên trang, không cần máy chủ</p>
+      <h1>Gia sư tiếng Anh</h1>
     </div>
-    <button class="ghost" id="open-settings" type="button">Khóa API</button>
+    <div class="modes">
+      <button class="ghost on" type="button" data-mode="hoc">Học</button>
+      <button class="ghost" type="button" data-mode="chat">Chat</button>
+      <button class="ghost" type="button" data-mode="sua">Sửa câu</button>
+    </div>
   </header>
   <main>
     <div id="log"></div>
+    <div class="chips" id="chips"></div>
     <form id="ask">
-      <textarea id="q" rows="2" placeholder="Hỏi bất kỳ điều gì, ví dụ: thủ đô của Việt Nam là gì?"></textarea>
-      <button type="submit">Hỏi</button>
+      <textarea id="q" rows="2" placeholder="Viết tiếng Anh hoặc hỏi bằng tiếng Việt…"></textarea>
+      <button type="submit">Gửi</button>
     </form>
   </main>
-  <dialog id="settings">
-    <form method="dialog">
-      <h2>Model của bạn</h2>
-      <p class="hint">Để trống thì trang chỉ tra Wikipedia. Khóa lưu trên trình duyệt này, không gửi lên GitHub.</p>
-      <label>Địa chỉ API
-        <input id="base" placeholder="https://api.x.ai/v1" />
-      </label>
-      <label>Model
-        <input id="model" placeholder="grok-3" />
-      </label>
-      <label>API key
-        <input id="key" type="password" placeholder="xai-..." />
-      </label>
-      <button type="submit">Lưu</button>
-    </form>
-  </dialog>
   <script>
-    const log = document.querySelector("#log");
-    const settings = document.querySelector("#settings");
-    const fields = ["base", "model", "key"];
-    for (const id of fields) {
-      const saved = localStorage.getItem("ai-" + id);
-      if (saved) document.querySelector("#" + id).value = saved;
-    }
-    document.querySelector("#open-settings").onclick = () => settings.showModal();
-    settings.onclose = () => {
-      for (const id of fields) localStorage.setItem("ai-" + id, document.querySelector("#" + id).value.trim());
-    };
+    const lessons = [
+      { id: "chao", title: "Chào hỏi", en: "Hello, my name is Lan. Nice to meet you.", vi: "Xin chào, tôi tên Lan. Rất vui được gặp bạn.", tip: "Hello / Hi để chào. My name is + tên. Nice to meet you dùng lúc mới gặp." },
+      { id: "be", title: "Động từ to be", en: "I am a student. She is tired. They are at home.", vi: "Tôi là học sinh. Cô ấy mệt. Họ ở nhà.", tip: "I am, you/we/they are, he/she/it is. Không nói I is." },
+      { id: "now", title: "Hiện tại đơn", en: "I work in Hue. He works in a hospital.", vi: "Tôi làm việc ở Huế. Anh ấy làm ở bệnh viện.", tip: "I/you/we/they + động từ nguyên mẫu. He/she/it thêm -s: works, goes, studies." },
+      { id: "thich", title: "Sở thích", en: "I like coffee. I don't like cold weather.", vi: "Tôi thích cà phê. Tôi không thích trời lạnh.", tip: "like + danh từ hoặc động từ -ing. Phủ định: don't / doesn't + động từ nguyên mẫu." },
+      { id: "hoi", title: "Câu hỏi", en: "Where do you live? Do you speak English?", vi: "Bạn sống ở đâu? Bạn có nói tiếng Anh không?", tip: "Yes/No: Do/Does + chủ ngữ + động từ. Where/What đứng đầu câu." }
+    ];
+    const replies = [
+      { test: /hello|hi\b|xin chào|chào/, say: "Hello! I'm your English tutor. What is your name?" },
+      { test: /my name is ([a-zA-ZÀ-ỹ ]+)/i, say: (m) => "Nice to meet you, " + m[1].trim() + ". How are you today?" },
+      { test: /i am fine|i'm fine|khỏe|tốt/, say: "I'm glad. What do you do every day? Try: I work... / I study..." },
+      { test: /thank/, say: "You're welcome. Do you want another short practice?" },
+      { test: /bye|tạm biệt/, say: "Goodbye. See you next lesson." }
+    ];
+    const fixes = [
+      [/i is/gi, "I am", "I đi với am, không dùng is."],
+      [/he are|she are/gi, "he/she is", "He và she đi với is."],
+      [/i very like/gi, "I really like", "Tiếng Anh không nói I very like. Dùng I really like."],
+      [/i am agree/gi, "I agree", "Agree là động từ, không cần am."],
+      [/he go/gi, "he goes", "He/she/it ở hiện tại đơn thêm -s."],
+      [/she go/gi, "she goes", "He/she/it ở hiện tại đơn thêm -s."],
+      [/i not/gi, "I don't", "Phủ định thường là don't + động từ."]
+    ];
 
-    function say(text, who, sources) {
+    let mode = "hoc";
+    let step = 0;
+    const log = document.querySelector("#log");
+    const chips = document.querySelector("#chips");
+
+    function say(text, who) {
       const div = document.createElement("div");
       div.className = "bubble " + who;
       div.textContent = text;
-      if (sources && sources.length) {
-        const s = document.createElement("div");
-        s.className = "src";
-        s.innerHTML = sources.map((x) => '<a href="' + x.url + '" target="_blank" rel="noopener">' + x.title + "</a>").join(" · ");
-        div.appendChild(s);
-      }
       log.appendChild(div);
       log.scrollTop = log.scrollHeight;
     }
-
-    async function wiki(lang, question) {
-      const search = new URL("https://" + lang + ".wikipedia.org/w/api.php");
-      search.searchParams.set("action", "query");
-      search.searchParams.set("list", "search");
-      search.searchParams.set("srsearch", question);
-      search.searchParams.set("srlimit", "3");
-      search.searchParams.set("format", "json");
-      search.searchParams.set("origin", "*");
-      const found = await fetch(search).then((r) => r.json());
-      const hits = (found.query && found.query.search) || [];
-      const out = [];
-      for (const hit of hits) {
-        const page = new URL("https://" + lang + ".wikipedia.org/w/api.php");
-        page.searchParams.set("action", "query");
-        page.searchParams.set("prop", "extracts");
-        page.searchParams.set("exintro", "1");
-        page.searchParams.set("explaintext", "1");
-        page.searchParams.set("titles", hit.title);
-        page.searchParams.set("format", "json");
-        page.searchParams.set("origin", "*");
-        const body = await fetch(page).then((r) => r.json());
-        const pages = body.query.pages || {};
-        const first = Object.values(pages)[0];
-        if (!first || !first.extract) continue;
-        out.push({
-          title: first.title + " (" + lang + ")",
-          text: first.extract.slice(0, 700),
-          url: "https://" + lang + ".wikipedia.org/wiki/" + encodeURIComponent(first.title.replace(/ /g, "_"))
-        });
+    function paintChips() {
+      chips.innerHTML = "";
+      const items = mode === "hoc"
+        ? lessons.map((l) => l.title)
+        : ["Hello", "My name is Minh", "I like music", "Where do you live?"];
+      for (const label of items) {
+        const b = document.createElement("button");
+        b.className = "ghost";
+        b.type = "button";
+        b.textContent = label;
+        b.onclick = () => { document.querySelector("#q").value = label; document.querySelector("#ask").requestSubmit(); };
+        chips.appendChild(b);
       }
-      return out;
+    }
+    function lessonByName(text) {
+      const low = text.toLowerCase();
+      return lessons.find((l) => low.includes(l.title.toLowerCase()) || low.includes(l.id));
+    }
+    function correct(text) {
+      let out = text;
+      const notes = [];
+      for (const [re, good, why] of fixes) {
+        if (re.test(out)) {
+          notes.push("• " + why + " → " + good);
+          out = out.replace(re, good);
+        }
+      }
+      if (out && out[0] === out[0].toLowerCase()) out = out[0].toUpperCase() + out.slice(1);
+      if (out && !/[.?!]$/.test(out)) out += ".";
+      return { out, notes };
+    }
+    function teach(text) {
+      const picked = lessonByName(text);
+      const lesson = picked || lessons[step % lessons.length];
+      if (!picked) step += 1;
+      return lesson.title + "\n\nEnglish: " + lesson.en + "\nTiếng Việt: " + lesson.vi + "\n\nGhi nhớ: " + lesson.tip + "\n\nBạn viết lại một câu của riêng bạn.";
+    }
+    function chat(text) {
+      for (const rule of replies) {
+        const m = text.match(rule.test);
+        if (m) return typeof rule.say === "function" ? rule.say(m) : rule.say;
+      }
+      const fixed = correct(text);
+      if (fixed.notes.length) return "Mình hiểu ý bạn. Câu tự nhiên hơn:\n" + fixed.out + "\n\n" + fixed.notes.join("\n") + "\n\nCan you say one more sentence?";
+      return "I understand. Tell me a little more in English.\nVí dụ: I live in Dong Ha. I study English every evening.";
+    }
+    function reply(text) {
+      if (mode === "hoc") return teach(text);
+      if (mode === "sua") {
+        const fixed = correct(text);
+        if (!fixed.notes.length) return "Câu này ổn với các lỗi mình đang bắt:\n" + fixed.out + "\n\nThử một câu khác, ví dụ: He go to school.";
+        return "Câu sửa:\n" + fixed.out + "\n\n" + fixed.notes.join("\n");
+      }
+      return chat(text);
     }
 
-    async function lookup(question) {
-      const vi = await wiki("vi", question);
-      if (vi.length) return vi;
-      return wiki("en", question);
-    }
-
-    async function modelAnswer(question, sources) {
-      const base = localStorage.getItem("ai-base");
-      const model = localStorage.getItem("ai-model");
-      const key = localStorage.getItem("ai-key");
-      if (!base || !model || !key) return null;
-      const context = sources.map((s, i) => "[" + (i + 1) + "] " + s.title + "\n" + s.text).join("\n\n");
-      const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
-        body: JSON.stringify({
-          model,
-          temperature: 0.2,
-          messages: [
-            { role: "system", content: "Trả lời tiếng Việt, ngắn, dựa trên nguồn nếu có. Nếu nguồn không đủ, nói rõ phần nào là suy luận." },
-            { role: "user", content: "NGUỒN:\n" + context + "\n\nCÂU HỎI: " + question }
-          ]
-        })
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      return data.choices[0].message.content;
-    }
-
-    document.querySelector("#ask").onsubmit = async (e) => {
+    document.querySelectorAll("[data-mode]").forEach((btn) => {
+      btn.onclick = () => {
+        mode = btn.dataset.mode;
+        document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b === btn));
+        paintChips();
+        say(mode === "hoc" ? "Chế độ học. Chọn một bài hoặc gõ Bắt đầu." : mode === "sua" ? "Dán một câu tiếng Anh, mình sửa lỗi thường gặp." : "Chat tiếng Anh. Mình trả lời ngay trên trang này.", "bot");
+      };
+    });
+    document.querySelector("#ask").onsubmit = (e) => {
       e.preventDefault();
       const box = document.querySelector("#q");
-      const question = box.value.trim();
-      if (!question) return;
-      say(question, "user");
+      const text = box.value.trim();
+      if (!text) return;
+      say(text, "user");
       box.value = "";
-      say("Đang tra cứu…", "bot");
-      try {
-        const sources = await lookup(question);
-        let text;
-        try { text = await modelAnswer(question, sources); } catch (err) { text = "Không gọi được model: " + err.message; }
-        if (!text) {
-          text = sources.length
-            ? sources.map((s, i) => "[" + (i + 1) + "] " + s.title + "\n" + s.text).join("\n\n")
-            : "Không tìm thấy trang Wikipedia khớp. Thêm khóa API trong nút Khóa API để model viết câu trả lời.";
-        }
-        log.lastChild.remove();
-        say(text, "bot", sources);
-      } catch (err) {
-        log.lastChild.remove();
-        say("Lỗi tra cứu: " + err.message, "bot");
-      }
+      say(reply(text), "bot");
     };
-    say("Hỏi một câu bất kỳ. Trang tra Wikipedia tiếng Việt, rồi tiếng Anh. Muốn câu trả lời do model viết, bấm Khóa API và dán khóa của bạn (ví dụ API xAI). Trang này không gọi được Grok trong cuộc chat.", "bot");
+    paintChips();
+    say("Mình là gia sư trên chính trang web này, không cần gọi Grok.\n\nHọc: 5 bài ngắn.\nChat: hội thoại tiếng Anh.\nSửa câu: bắt lỗi thường gặp của người Việt.\n\nChọn Chào hỏi hoặc gõ Bắt đầu.", "bot");
   </script>
 </body>
 </html>
