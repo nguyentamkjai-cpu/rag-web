@@ -3,115 +3,163 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Xây app bằng chat</title>
+  <title>Gia sư AI tiếng Anh</title>
   <style>
-    :root { --bg:#0c0e12; --panel:#151922; --line:#2a3140; --text:#eef2f6; --muted:#8b97a8; --accent:#7cffb2; --ink:#102216; }
+    :root { --bg:#10140f; --panel:#1a2218; --line:#31402c; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
     * { box-sizing: border-box; }
-    body { margin:0; height:100vh; display:grid; grid-template-columns:240px 1fr 1fr; background:var(--bg); color:var(--text); font-family:"Segoe UI",system-ui,sans-serif; }
-    aside, main, .preview { min-height:0; }
-    aside { border-right:1px solid var(--line); padding:16px; }
-    main, .preview { display:flex; flex-direction:column; }
-    .preview { border-left:1px solid var(--line); }
-    h1 { font-size:16px; margin:0 0 12px; }
-    .eyebrow { color:var(--accent); font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
-    button, textarea { font:inherit; }
-    button { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:10px; padding:8px 10px; cursor:pointer; }
-    button.on, button.primary { background:var(--accent); color:var(--ink); border-color:var(--accent); font-weight:700; }
-    .jobs { display:grid; gap:8px; margin-top:14px; }
-    .job { text-align:left; }
-    #log { flex:1; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:10px; }
-    .bubble { max-width:92%; padding:12px 14px; border-radius:14px; white-space:pre-wrap; line-height:1.45; }
-    .user { align-self:end; background:#243044; }
-    .bot { background:var(--panel); border:1px solid var(--line); }
-    .composer { padding:12px; border-top:1px solid var(--line); }
-    .types { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
-    textarea { width:100%; min-height:72px; resize:vertical; border-radius:12px; border:1px solid var(--line); background:#10141c; color:var(--text); padding:10px; }
-    .send { margin-top:8px; }
-    iframe { flex:1; width:100%; border:0; background:#fff; }
-    .bar { padding:10px 12px; border-bottom:1px solid var(--line); color:var(--muted); font-size:13px; }
-    @media (max-width:900px) { body { grid-template-columns:1fr; height:auto; } .preview { min-height:420px; } }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(980px 400px at 8% -10%, #24331d, var(--bg)); }
+    header, main { width:min(880px, calc(100% - 28px)); margin:0 auto; }
+    header { padding:26px 0 10px; display:flex; justify-content:space-between; align-items:end; gap:12px; }
+    h1 { margin:0; font-size:28px; }
+    .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
+    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
+    .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
+    main { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; min-height:72vh; display:flex; flex-direction:column; }
+    #log { flex:1; display:flex; flex-direction:column; gap:10px; overflow:auto; max-height:60vh; }
+    .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.5; }
+    .user { align-self:end; background:#2c3b22; max-width:85%; }
+    .bot { background:#12180f; border:1px solid var(--line); }
+    form, .setup { display:grid; gap:8px; margin-top:12px; }
+    form { grid-template-columns:1fr auto auto; }
+    textarea, input { font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+    textarea { resize:vertical; }
+    .hear { margin-top:8px; padding:6px 8px; }
+    .hint { color:var(--muted); font-size:13px; margin:0; }
   </style>
 </head>
 <body>
-  <aside>
-    <p class="eyebrow">Agent chat</p>
-    <h1>Việc đang làm</h1>
-    <button id="new" type="button">Việc mới</button>
-    <div class="jobs" id="jobs"></div>
-  </aside>
+  <header>
+    <div>
+      <p class="eyebrow">AI tiếng Anh · nhớ hội thoại · có giọng</p>
+      <h1>Gia sư AI</h1>
+    </div>
+    <button class="ghost" id="reset" type="button">Đổi khóa</button>
+  </header>
   <main>
     <div id="log"></div>
-    <form class="composer" id="ask">
-      <div class="types">
-        <button type="button" class="on" data-type="Landing">Landing</button>
-        <button type="button" data-type="Web app">Web app</button>
-        <button type="button" data-type="Bảng">Bảng</button>
-      </div>
-      <textarea id="q" placeholder="Mô tả app bạn muốn. Ví dụ: trang đặt bàn cho quán cà phê, có menu và form đặt chỗ."></textarea>
-      <button class="primary send" type="submit">Dựng bản xem</button>
+    <div class="setup" id="setup">
+      <p class="hint">Trang gọi AI của bạn. Khóa chỉ lưu trên trình duyệt này, không lên GitHub. Mặc định là API xAI.</p>
+      <input id="base" placeholder="https://api.x.ai/v1" />
+      <input id="model" placeholder="grok-3" />
+      <input id="key" type="password" placeholder="Dán API key" />
+      <button type="button" id="save">Bắt đầu học với AI</button>
+    </div>
+    <form id="ask" hidden>
+      <textarea id="q" rows="2" placeholder="Viết hoặc bấm Nói…"></textarea>
+      <button type="button" id="mic" class="ghost">Nói</button>
+      <button type="submit">Gửi</button>
     </form>
   </main>
-  <section class="preview">
-    <div class="bar">Bản xem trước · chưa phải site đã xuất bản</div>
-    <iframe id="frame" title="Xem trước"></iframe>
-  </section>
   <script>
-    const jobs = JSON.parse(localStorage.getItem("agent-jobs") || "[]");
-    let current = jobs[0] || null;
-    let kind = "Landing";
+    const history = [{ role: "system", content: "Bạn là gia sư tiếng Anh cho người Việt. Mỗi lượt: một câu mẫu tiếng Anh, giải thích ngắn bằng tiếng Việt, rồi một câu hỏi để học viên nói tiếp. Sửa lỗi ngữ pháp nếu có. Giữ mạch hội thoại. Không bịa khóa API hay trang web." }];
     const log = document.querySelector("#log");
-    const frame = document.querySelector("#frame");
-    function save() { localStorage.setItem("agent-jobs", JSON.stringify(jobs)); }
-    function paintJobs() {
-      const box = document.querySelector("#jobs");
-      box.innerHTML = "";
-      jobs.forEach((job) => {
-        const b = document.createElement("button");
-        b.className = "job" + (current && current.id === job.id ? " on" : "");
-        b.textContent = job.title;
-        b.onclick = () => { current = job; openJob(); };
-        box.appendChild(b);
-      });
+    const setup = document.querySelector("#setup");
+    const askForm = document.querySelector("#ask");
+
+    function cfg() {
+      return {
+        base: localStorage.getItem("ai-base") || "",
+        model: localStorage.getItem("ai-model") || "",
+        key: localStorage.getItem("ai-key") || ""
+      };
+    }
+    function speak(text) {
+      if (!window.speechSynthesis) return;
+      const english = (text.match(/English: ([^\n]+)/) || [null, text.split("\n")[0]])[1];
+      const utter = new SpeechSynthesisUtterance(english);
+      utter.lang = "en-US";
+      utter.rate = 0.9;
+      const voice = speechSynthesis.getVoices().find((v) => /^en/i.test(v.lang));
+      if (voice) utter.voice = voice;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
     }
     function say(text, who) {
       const div = document.createElement("div");
       div.className = "bubble " + who;
       div.textContent = text;
+      if (who === "bot") {
+        const hear = document.createElement("button");
+        hear.className = "ghost hear";
+        hear.type = "button";
+        hear.textContent = "Nghe";
+        hear.onclick = () => speak(text);
+        div.appendChild(hear);
+        speak(text);
+      }
       log.appendChild(div);
       log.scrollTop = log.scrollHeight;
     }
-    function page(title, brief) {
-      return "<!doctype html><html><head><meta charset='utf-8'><title>" + title + "</title><style>body{margin:0;font-family:Segoe UI,sans-serif;background:#f6f7f4;color:#1b2118}header,main{width:min(760px,calc(100% - 28px));margin:auto}header{padding:36px 0 8px}h1{margin:0 0 8px}p{color:#556052}.card{background:#fff;border:1px solid #e1e6dc;border-radius:14px;padding:14px;margin:10px 0}button,input{font:inherit;padding:10px;border-radius:10px;border:1px solid #d5dccf}button{background:#c6f25d;border:0;font-weight:700}</style></head><body><header><p>Bản dựng từ chat</p><h1>" + title + "</h1><p>" + brief + "</p></header><main><form class='card'><input placeholder='Tên'><input placeholder='Ghi chú' style='margin-left:8px'><button style='margin-left:8px'>Lưu</button></form><div id='list' class='card'>Chưa có mục nào.</div></main><script>document.querySelector('form').onsubmit=function(e){e.preventDefault();document.querySelector('#list').textContent='Đã lưu: '+document.querySelector('input').value}<\/script></body></html>";
+    function showChat(on) {
+      setup.hidden = on;
+      askForm.hidden = !on;
     }
-    function openJob() {
-      log.innerHTML = "";
-      if (!current) { say("Chọn loại app, rồi mô tả việc cần làm. Mình dựng bản xem trước bên phải.", "bot"); frame.srcdoc = page("Chưa có app", "Gửi một mô tả để bắt đầu."); paintJobs(); return; }
-      current.messages.forEach((m) => say(m.text, m.who));
-      frame.srcdoc = current.html;
-      paintJobs();
+    async function ai(text) {
+      const { base, model, key } = cfg();
+      history.push({ role: "user", content: text });
+      const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
+        body: JSON.stringify({ model, temperature: 0.4, messages: history.slice(-12) })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error && data.error.message ? data.error.message : "AI từ chối yêu cầu");
+      const answer = data.choices[0].message.content;
+      history.push({ role: "assistant", content: answer });
+      return answer;
     }
-    document.querySelectorAll("[data-type]").forEach((btn) => btn.onclick = () => {
-      kind = btn.dataset.type;
-      document.querySelectorAll("[data-type]").forEach((b) => b.classList.toggle("on", b === btn));
-    });
-    document.querySelector("#new").onclick = () => { current = null; openJob(); };
-    document.querySelector("#ask").onsubmit = (e) => {
-      e.preventDefault();
-      const text = document.querySelector("#q").value.trim();
-      if (!text) return;
-      document.querySelector("#q").value = "";
-      if (!current) {
-        current = { id: crypto.randomUUID(), title: text.slice(0, 32), kind, messages: [], html: "" };
-        jobs.unshift(current);
-      }
-      current.messages.push({ who: "user", text });
-      const html = page(current.title, text);
-      current.html = html;
-      current.messages.push({ who: "bot", text: "Mình đã dựng bản " + kind + " cho: " + text + "\n\nBên phải là bản xem trước. Muốn sửa, nói tiếp điều cần đổi." });
-      save();
-      openJob();
+    document.querySelector("#save").onclick = () => {
+      localStorage.setItem("ai-base", document.querySelector("#base").value.trim() || "https://api.x.ai/v1");
+      localStorage.setItem("ai-model", document.querySelector("#model").value.trim() || "grok-3");
+      localStorage.setItem("ai-key", document.querySelector("#key").value.trim());
+      if (!cfg().key) { say("Cần API key thì trang mới gọi được AI.", "bot"); return; }
+      showChat(true);
+      say("AI đã sẵn sàng. English: Hello, I am your tutor. What is your name?", "bot");
     };
-    openJob();
+    document.querySelector("#reset").onclick = () => {
+      localStorage.removeItem("ai-key");
+      showChat(false);
+    };
+    document.querySelector("#mic").onclick = () => {
+      const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Rec) { say("Dùng Chrome để nói.", "bot"); return; }
+      const rec = new Rec();
+      rec.lang = "en-US";
+      rec.onresult = (e) => {
+        document.querySelector("#q").value = e.results[0][0].transcript;
+        askForm.requestSubmit();
+      };
+      rec.onerror = () => say("Không nghe được. Cho phép micro rồi thử lại.", "bot");
+      rec.start();
+    };
+    askForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const box = document.querySelector("#q");
+      const text = box.value.trim();
+      if (!text) return;
+      say(text, "user");
+      box.value = "";
+      say("AI đang trả lời…", "bot");
+      try {
+        const answer = await ai(text);
+        log.lastChild.remove();
+        say(answer, "bot");
+      } catch (err) {
+        log.lastChild.remove();
+        history.pop();
+        say("Không gọi được AI: " + err.message + "\nKiểm tra khóa, model và địa chỉ API.", "bot");
+      }
+    };
+    const saved = cfg();
+    document.querySelector("#base").value = saved.base || "https://api.x.ai/v1";
+    document.querySelector("#model").value = saved.model || "grok-3";
+    if (saved.key) {
+      document.querySelector("#key").value = saved.key;
+      showChat(true);
+      say("Đã có khóa trên trình duyệt này. English: Hello again. What do you want to practice?", "bot");
+    } else {
+      say("Trang này dùng AI qua API của bạn. Dán khóa, rồi học, chat và sửa câu đều do model trả lời. Nghe và Nói vẫn có.", "bot");
+    }
   </script>
 </body>
 </html>
