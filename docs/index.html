@@ -62,13 +62,12 @@
       { test: /bye|tạm biệt/, say: "Goodbye. See you next lesson." }
     ];
     const fixes = [
-      [/i is/gi, "I am", "I đi với am, không dùng is."],
-      [/he are|she are/gi, "he/she is", "He và she đi với is."],
-      [/i very like/gi, "I really like", "Tiếng Anh không nói I very like. Dùng I really like."],
-      [/i am agree/gi, "I agree", "Agree là động từ, không cần am."],
-      [/he go/gi, "he goes", "He/she/it ở hiện tại đơn thêm -s."],
-      [/she go/gi, "she goes", "He/she/it ở hiện tại đơn thêm -s."],
-      [/i not/gi, "I don't", "Phủ định thường là don't + động từ."]
+      [/\bi is\b/gi, "I am", "I đi với am, không dùng is."],
+      [/\b(he|she) are\b/gi, "$1 is", "He và she đi với is."],
+      [/\bi very like\b/gi, "I really like", "Tiếng Anh không nói I very like. Dùng I really like."],
+      [/\bi am agree\b/gi, "I agree", "Agree là động từ, không cần am."],
+      [/\b(he|she) go\b/gi, "$1 goes", "He/she/it ở hiện tại đơn thêm -s."],
+      [/\bi not\b/gi, "I don't", "Phủ định thường là don't + động từ."]
     ];
 
     let mode = "hoc";
