@@ -3,116 +3,160 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI học từ mạng xã hội</title>
+  <title>Chấm bài AI</title>
   <style>
-    :root { --bg:#10140f; --panel:#1a2218; --line:#31402c; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
+    :root { --bg:#f4f6f8; --card:#fff; --line:#d7dee7; --text:#1c2430; --muted:#5d6b7a; --blue:#2457d6; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:var(--bg); }
+    body { margin:0; font-family:"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
     header, main { width:min(1100px, calc(100% - 24px)); margin:0 auto; }
-    header { padding:24px 0 8px; }
+    header { display:flex; justify-content:space-between; gap:12px; align-items:end; padding:22px 0 8px; }
     h1, h2 { margin:0; }
-    .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
-    main { display:grid; grid-template-columns:320px 1fr; gap:14px; padding-bottom:28px; }
-    section { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; }
-    label, .hint { color:var(--muted); font-size:13px; }
-    textarea, input, select, button { font:inherit; }
-    textarea, input, select { width:100%; margin:6px 0 10px; border:1px solid var(--line); background:#10160e; color:var(--text); border-radius:10px; padding:8px 10px; }
-    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 12px; cursor:pointer; }
-    .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
-    ul { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
-    li { border-top:1px solid var(--line); padding-top:8px; }
-    #log { min-height:320px; display:flex; flex-direction:column; gap:8px; }
-    .bubble { padding:10px 12px; border-radius:12px; white-space:pre-wrap; line-height:1.45; }
-    .user { align-self:end; background:#2c3b22; }
-    .bot { background:#12180f; border:1px solid var(--line); }
-    form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px; }
-    @media (max-width:800px) { main { grid-template-columns:1fr; } }
+    .muted { color:var(--muted); font-size:14px; }
+    main { display:grid; gap:14px; padding-bottom:28px; }
+    section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    input, textarea, button { font:inherit; }
+    input, textarea { border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+    textarea { width:100%; min-height:90px; }
+    button { border:0; background:var(--blue); color:#fff; border-radius:10px; padding:9px 12px; cursor:pointer; }
+    .ghost { background:#eef2f8; color:var(--text); }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { text-align:left; border-bottom:1px solid var(--line); padding:8px; vertical-align:top; }
+    .flag { color:#a33; font-weight:700; }
   </style>
 </head>
 <body>
   <header>
-    <p class="eyebrow">Cấu trúc web AI</p>
-    <h1>Học thêm từ mạng xã hội</h1>
+    <div>
+      <h1>Chấm bài AI</h1>
+      <p class="muted">Theo chương trình AI-Assignment-Marking: nộp bài, chấm rubric Computer Systems, kiểm tra giống nhau.</p>
+    </div>
+    <div class="row">
+      <input id="key" type="password" placeholder="Gemini API key, không bắt buộc" />
+      <button id="save" type="button" class="ghost">Lưu khóa</button>
+    </div>
   </header>
   <main>
     <section>
-      <h2>1. Nguồn</h2>
-      <label>Nền tảng</label>
-      <select id="platform">
-        <option>X</option>
-        <option>Facebook</option>
-        <option>Threads</option>
-        <option>RSS</option>
-        <option>Khác</option>
-      </select>
-      <label>Dán bài viết công khai</label>
-      <textarea id="post" rows="6" placeholder="Dán nội dung một bài công khai, hoặc đường dẫn bài."></textarea>
-      <button id="learn" type="button">Đưa vào bộ nhớ</button>
-      <p class="hint">Trang không đăng nhập hộ và không lấy bài riêng tư. Bạn chỉ đưa nội dung được phép dùng.</p>
-      <h2 style="margin-top:16px">2. Đã học</h2>
-      <ul id="memory"></ul>
+      <h2>Nộp bài</h2>
+      <p class="muted">Tên file dạng S10485739_Alice.txt. Có thể dán nội dung nếu không có file.</p>
+      <div class="row">
+        <input id="file" type="file" accept=".txt,.md" />
+        <input id="sid" placeholder="Mã sinh viên" />
+        <input id="sname" placeholder="Tên" />
+      </div>
+      <textarea id="text" placeholder="Nội dung bài: normalization, index, memory allocation..."></textarea>
+      <button id="add" type="button">Thêm bài</button>
     </section>
     <section>
-      <h2>3. Hỏi AI trên kiến thức vừa học</h2>
-      <div id="log"></div>
-      <form id="ask">
-        <input id="q" placeholder="Hỏi từ những bài đã dán" />
-        <button type="submit">Hỏi</button>
-      </form>
+      <div class="row" style="justify-content:space-between">
+        <h2>Bảng bài nộp</h2>
+        <button id="grade-all" type="button">Chấm tất cả</button>
+      </div>
+      <table>
+        <thead><tr><th>Sinh viên</th><th>File</th><th>Điểm</th><th>Trùng</th><th>Nhận xét</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
     </section>
   </main>
   <script>
-    const key = "social-memory";
-    const memory = JSON.parse(localStorage.getItem(key) || "[]");
-    const list = document.querySelector("#memory");
-    const log = document.querySelector("#log");
-    function save() { localStorage.setItem(key, JSON.stringify(memory)); }
-    function paint() {
-      list.innerHTML = memory.length ? "" : "<li class='hint'>Chưa có bài nào.</li>";
-      memory.forEach((item, i) => {
-        const li = document.createElement("li");
-        li.innerHTML = "<strong>" + item.platform + "</strong><div class='hint'>" + item.text.slice(0, 120) + "</div>";
-        const btn = document.createElement("button");
-        btn.className = "ghost";
-        btn.textContent = "Xóa";
-        btn.onclick = () => { memory.splice(i, 1); save(); paint(); };
-        li.appendChild(btn);
-        list.appendChild(li);
+    const store = "marking-submissions";
+    const rubric = "Computer Systems, 100 điểm: Normalization 35, Index 30, Memory allocation 35.";
+    let items = JSON.parse(localStorage.getItem(store) || "[]");
+    const keyInput = document.querySelector("#key");
+    keyInput.value = localStorage.getItem("gemini-key") || "";
+    document.querySelector("#save").onclick = () => localStorage.setItem("gemini-key", keyInput.value.trim());
+
+    function words(text) { return new Set(text.toLowerCase().match(/[a-z0-9]+/g) || []); }
+    function similarity(a, b) {
+      const A = words(a), B = words(b);
+      if (!A.size || !B.size) return 0;
+      let inter = 0;
+      A.forEach((w) => { if (B.has(w)) inter += 1; });
+      return inter / (A.size + B.size - inter);
+    }
+    function refreshRisk() {
+      items.forEach((item) => {
+        let best = 0;
+        items.forEach((other) => {
+          if (other.id !== item.id) best = Math.max(best, similarity(item.text, other.text));
+        });
+        item.risk = Math.round(best * 100);
+        item.flagged = best >= 0.45;
       });
     }
-    function say(text, who) {
-      const div = document.createElement("div");
-      div.className = "bubble " + who;
-      div.textContent = text;
-      log.appendChild(div);
+    function localGrade(text) {
+      const low = text.toLowerCase();
+      const parts = [
+        ["normal", 35], ["index", 30], ["memory", 15], ["paging", 10], ["fragment", 10]
+      ];
+      let score = 0;
+      const hit = [];
+      parts.forEach(([word, points]) => { if (low.includes(word)) { score += points; hit.push(word); } });
+      score = Math.min(100, score);
+      return { score, feedback: hit.length ? "Bài có nhắc: " + hit.join(", ") + ". Cần ví dụ và giải thích sâu hơn theo rubric." : "Bài chưa phủ normalization, index và memory allocation." };
     }
-    function answer(question) {
-      const words = question.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
-      const ranked = memory.map((item) => {
-        const low = item.text.toLowerCase();
-        return { item, score: words.filter((w) => low.includes(w)).length };
-      }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
-      if (!ranked.length) return "Chưa thấy ý này trong bài đã học. Dán thêm bài công khai liên quan.";
-      return ranked.map((x, i) => "[" + (i + 1) + "] " + x.item.platform + "\n" + x.item.text.slice(0, 280)).join("\n\n");
+    async function grade(item) {
+      const key = localStorage.getItem("gemini-key");
+      if (!key) return localGrade(item.text);
+      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + encodeURIComponent(key), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: rubric + "\nChấm bài sau, trả JSON {\"score\": number, \"draft_feedback\": string}.\n" + item.text.slice(0, 8000) }] }] })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error && data.error.message || "Gemini lỗi");
+      const raw = data.candidates[0].content.parts.map((p) => p.text).join("");
+      const json = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+      return { score: Number(json.score), feedback: json.draft_feedback };
     }
-    document.querySelector("#learn").onclick = () => {
-      const text = document.querySelector("#post").value.trim();
+    function paint() {
+      refreshRisk();
+      localStorage.setItem(store, JSON.stringify(items));
+      const body = document.querySelector("#rows");
+      body.innerHTML = "";
+      items.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + item.studentId + " · " + item.name + "</td><td>" + item.filename + "</td><td>" + (item.score ?? "—") + "</td><td class='" + (item.flagged ? "flag" : "") + "'>" + item.risk + "%</td><td>" + (item.feedback || "") + "</td>";
+        const td = document.createElement("td");
+        const b = document.createElement("button");
+        b.className = "ghost";
+        b.textContent = "Chấm";
+        b.onclick = async () => {
+          try { const g = await grade(item); item.score = g.score; item.feedback = g.feedback; item.gradedAt = new Date().toISOString(); }
+          catch (err) { item.feedback = err.message; }
+          paint();
+        };
+        td.appendChild(b);
+        tr.appendChild(td);
+        body.appendChild(tr);
+      });
+    }
+    document.querySelector("#file").onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.querySelector("#text").value = await file.text();
+      const m = file.name.match(/S?(\d+)[_-]([^.]+)/i);
+      if (m) { document.querySelector("#sid").value = m[1]; document.querySelector("#sname").value = m[2]; }
+    };
+    document.querySelector("#add").onclick = () => {
+      const text = document.querySelector("#text").value.trim();
+      const studentId = document.querySelector("#sid").value.trim() || "unknown";
+      const name = document.querySelector("#sname").value.trim() || "Student";
       if (!text) return;
-      memory.unshift({ platform: document.querySelector("#platform").value, text, at: new Date().toISOString() });
-      document.querySelector("#post").value = "";
-      save();
+      items.unshift({ id: crypto.randomUUID(), studentId, name, filename: "S" + studentId + "_" + name + ".txt", text, score: null, feedback: "", risk: 0, flagged: false });
+      document.querySelector("#text").value = "";
       paint();
     };
-    document.querySelector("#ask").onsubmit = (e) => {
-      e.preventDefault();
-      const q = document.querySelector("#q");
-      if (!q.value.trim()) return;
-      say(q.value.trim(), "user");
-      say(answer(q.value.trim()), "bot");
-      q.value = "";
+    document.querySelector("#grade-all").onclick = async () => {
+      for (const item of items) {
+        if (item.score != null) continue;
+        try { const g = await grade(item); item.score = g.score; item.feedback = g.feedback; }
+        catch (err) { item.feedback = err.message; }
+      }
+      paint();
     };
     paint();
-    say("Cấu trúc trang: Nguồn để nạp bài, Đã học để xem bộ nhớ, Hỏi để tra trên đúng phần đã nạp.", "bot");
   </script>
 </body>
 </html>
