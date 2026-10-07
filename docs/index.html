@@ -12,7 +12,7 @@
     header { padding:26px 0 10px; display:flex; justify-content:space-between; align-items:end; gap:12px; }
     h1 { margin:0; font-size:28px; }
     .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
-    .modes { display:flex; gap:8px; flex-wrap:wrap; }
+    .modes, .chips { display:flex; gap:8px; flex-wrap:wrap; }
     button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
     .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
     .ghost.on { color:var(--ink); background:var(--accent); border-color:var(--accent); }
@@ -22,21 +22,26 @@
     .user { align-self:end; background:#2c3b22; max-width:85%; }
     .bot { background:#12180f; border:1px solid var(--line); }
     form { display:grid; grid-template-columns:1fr auto auto; gap:8px; margin-top:12px; }
-    textarea { resize:vertical; font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
-    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    textarea, input { font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+    textarea { resize:vertical; }
+    .chips { margin-top:10px; }
     .hear { margin-top:8px; padding:6px 8px; }
+    dialog { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:16px; width:min(480px, 92vw); }
+    dialog label { display:grid; gap:4px; margin:10px 0; font-size:14px; }
+    .hint { color:var(--muted); font-size:13px; }
   </style>
 </head>
 <body>
   <header>
     <div>
-      <p class="eyebrow">Chạy trên trang, không cần máy chủ</p>
+      <p class="eyebrow">Nhớ bài trong phiên · có giọng nói</p>
       <h1>Gia sư tiếng Anh</h1>
     </div>
     <div class="modes">
       <button class="ghost on" type="button" data-mode="hoc">Học</button>
       <button class="ghost" type="button" data-mode="chat">Chat</button>
       <button class="ghost" type="button" data-mode="sua">Sửa câu</button>
+      <button class="ghost" type="button" id="open-key">Model</button>
     </div>
   </header>
   <main>
@@ -48,30 +53,41 @@
       <button type="submit">Gửi</button>
     </form>
   </main>
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>Để gia sư khôn hơn</h2>
+      <p class="hint">Không bắt buộc. Dán khóa API của bạn thì câu trả lời do model viết. Khóa chỉ nằm trên trình duyệt.</p>
+      <label>API <input id="base" placeholder="https://api.x.ai/v1" /></label>
+      <label>Model <input id="model" placeholder="grok-3" /></label>
+      <label>Key <input id="key" type="password" placeholder="xai-..." /></label>
+      <button type="submit">Lưu</button>
+    </form>
+  </dialog>
   <script>
     const lessons = [
-      { id: "chao", title: "Chào hỏi", en: "Hello, my name is Lan. Nice to meet you.", vi: "Xin chào, tôi tên Lan. Rất vui được gặp bạn.", tip: "Hello / Hi để chào. My name is + tên. Nice to meet you dùng lúc mới gặp." },
-      { id: "be", title: "Động từ to be", en: "I am a student. She is tired. They are at home.", vi: "Tôi là học sinh. Cô ấy mệt. Họ ở nhà.", tip: "I am, you/we/they are, he/she/it is. Không nói I is." },
-      { id: "now", title: "Hiện tại đơn", en: "I work in Hue. He works in a hospital.", vi: "Tôi làm việc ở Huế. Anh ấy làm ở bệnh viện.", tip: "I/you/we/they + động từ nguyên mẫu. He/she/it thêm -s: works, goes, studies." },
-      { id: "thich", title: "Sở thích", en: "I like coffee. I don't like cold weather.", vi: "Tôi thích cà phê. Tôi không thích trời lạnh.", tip: "like + danh từ hoặc động từ -ing. Phủ định: don't / doesn't + động từ nguyên mẫu." },
-      { id: "hoi", title: "Câu hỏi", en: "Where do you live? Do you speak English?", vi: "Bạn sống ở đâu? Bạn có nói tiếng Anh không?", tip: "Yes/No: Do/Does + chủ ngữ + động từ. Where/What đứng đầu câu." }
-    ];
-    const replies = [
-      { test: /hello|hi\b|xin chào|chào/, say: "Hello! I'm your English tutor. What is your name?" },
-      { test: /my name is ([a-zA-ZÀ-ỹ ]+)/i, say: (m) => "Nice to meet you, " + m[1].trim() + ". How are you today?" },
-      { test: /i am fine|i'm fine|khỏe|tốt/, say: "I'm glad. What do you do every day? Try: I work... / I study..." },
-      { test: /thank/, say: "You're welcome. Do you want another short practice?" },
-      { test: /bye|tạm biệt/, say: "Goodbye. See you next lesson." }
+      { title: "Chào hỏi", en: "Hello, my name is Lan. Nice to meet you.", vi: "Xin chào, tôi tên Lan. Rất vui được gặp bạn.", tip: "Hello. My name is + tên. Nice to meet you khi mới gặp.", ask: "What is your name?" },
+      { title: "To be", en: "I am a student. She is tired. They are at home.", vi: "Tôi là học sinh. Cô ấy mệt. Họ ở nhà.", tip: "I am. You/we/they are. He/she/it is.", ask: "Are you a student?" },
+      { title: "Hiện tại đơn", en: "I work in Hue. He works in a hospital.", vi: "Tôi làm ở Huế. Anh ấy làm ở bệnh viện.", tip: "He/she/it thêm -s. Phủ định: don't / doesn't + động từ nguyên mẫu.", ask: "Where do you work?" },
+      { title: "Sở thích", en: "I like coffee, but I don't like cold weather.", vi: "Tôi thích cà phê, nhưng tôi không thích trời lạnh.", tip: "like + danh từ hoặc V-ing. but nối hai ý trái nhau.", ask: "What do you like?" },
+      { title: "Câu hỏi", en: "Where do you live? Do you speak English?", vi: "Bạn sống ở đâu? Bạn có nói tiếng Anh không?", tip: "Do/Does đứng trước chủ ngữ trong câu hỏi Yes/No.", ask: "Do you speak English every day?" },
+      { title: "Quá khứ", en: "Yesterday I studied English. I did not watch TV.", vi: "Hôm qua tôi học tiếng Anh. Tôi đã không xem TV.", tip: "Quá khứ thường thêm -ed. Phủ định: did not + động từ nguyên mẫu.", ask: "What did you do yesterday?" },
+      { title: "Tương lai", en: "Tomorrow I will practice speaking.", vi: "Ngày mai tôi sẽ luyện nói.", tip: "will + động từ nguyên mẫu cho việc quyết định lúc nói.", ask: "What will you do tomorrow?" },
+      { title: "Giới từ", en: "I live in Dong Ha. I study at night.", vi: "Tôi sống ở Đông Hà. Tôi học vào ban đêm.", tip: "in + thành phố. at + giờ hoặc night. on + thứ trong tuần.", ask: "Where do you live?" }
     ];
     const fixes = [
       [/\bi is\b/gi, "I am", "I đi với am, không dùng is."],
-      [/\b(he|she) are\b/gi, "$1 is", "He và she đi với is."],
-      [/\bi very like\b/gi, "I really like", "Tiếng Anh không nói I very like. Dùng I really like."],
-      [/\bi am agree\b/gi, "I agree", "Agree là động từ, không cần am."],
-      [/\b(he|she) go\b/gi, "$1 goes", "He/she/it ở hiện tại đơn thêm -s."],
-      [/\bi not\b/gi, "I don't", "Phủ định thường là don't + động từ."]
+      [/\b(he|she|it) are\b/gi, "$1 is", "He, she và it đi với is."],
+      [/\b(we|they|you) is\b/gi, "$1 are", "We, they và you đi với are."],
+      [/\bi very like\b/gi, "I really like", "Không nói I very like. Dùng I really like."],
+      [/\bi am agree\b/gi, "I agree", "Agree là động từ, bỏ am."],
+      [/\bi am go\b/gi, "I go", "Go là động từ thường, không thêm am."],
+      [/\b(he|she|it) (go|like|work|live|study)\b/gi, "$1 $2s", "He/she/it ở hiện tại đơn thêm -s."],
+      [/\b(he|she) don't\b/gi, "$1 doesn't", "He/she dùng doesn't, không dùng don't."],
+      [/\bi not\b/gi, "I don't", "Phủ định thường là don't + động từ."],
+      [/\bmore better\b/gi, "better", "Better đã là dạng so sánh hơn, không thêm more."],
+      [/\bdiscuss about\b/gi, "discuss", "Discuss không đi với about."]
     ];
-
+    const memory = { name: "", mistakes: [], topic: lessons[0].title, turns: [] };
     let mode = "hoc";
     let step = 0;
     const log = document.querySelector("#log");
@@ -79,11 +95,11 @@
 
     function speak(text) {
       if (!window.speechSynthesis) return;
-      const line = (text.match(/English: (.+)/) || [null, text])[1];
-      const utter = new SpeechSynthesisUtterance(line);
+      const english = (text.match(/English: (.+)/) || text.match(/Câu sửa:\n(.+)/) || [null, text.split("\n")[0]])[1];
+      const utter = new SpeechSynthesisUtterance(english);
       utter.lang = "en-US";
       utter.rate = 0.9;
-      const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
+      const voice = speechSynthesis.getVoices().find((v) => /^en/i.test(v.lang));
       if (voice) utter.voice = voice;
       speechSynthesis.cancel();
       speechSynthesis.speak(utter);
@@ -106,9 +122,7 @@
     }
     function paintChips() {
       chips.innerHTML = "";
-      const items = mode === "hoc"
-        ? lessons.map((l) => l.title)
-        : ["Hello", "My name is Minh", "I like music", "Where do you live?"];
+      const items = mode === "hoc" ? lessons.map((l) => l.title) : ["Hello, my name is Minh", "I very like music", "He go to school", "What did you do yesterday?"];
       for (const label of items) {
         const b = document.createElement("button");
         b.className = "ghost";
@@ -118,59 +132,90 @@
         chips.appendChild(b);
       }
     }
-    function lessonByName(text) {
-      const low = text.toLowerCase();
-      return lessons.find((l) => low.includes(l.title.toLowerCase()) || low.includes(l.id));
-    }
     function correct(text) {
-      let out = text;
+      let out = text.trim();
       const notes = [];
       for (const [re, good, why] of fixes) {
         if (re.test(out)) {
-          notes.push("• " + why + " → " + good);
+          notes.push("• " + why);
           out = out.replace(re, good);
+          memory.mistakes.push(why);
         }
       }
-      if (out && out[0] === out[0].toLowerCase()) out = out[0].toUpperCase() + out.slice(1);
+      if (out && out[0] === out[0].toLowerCase() && /^[a-z]/.test(out)) out = out[0].toUpperCase() + out.slice(1);
       if (out && !/[.?!]$/.test(out)) out += ".";
       return { out, notes };
     }
+    function remember(text) {
+      const name = text.match(/\bmy name is ([a-zA-Z][a-zA-Z .'-]{0,30})/i);
+      if (name) memory.name = name[1].trim().replace(/[.]/g, "");
+      memory.turns.push(text);
+      if (memory.turns.length > 8) memory.turns.shift();
+    }
     function teach(text) {
-      const picked = lessonByName(text);
+      const picked = lessons.find((l) => text.toLowerCase().includes(l.title.toLowerCase()));
       const lesson = picked || lessons[step % lessons.length];
       if (!picked) step += 1;
-      return lesson.title + "\n\nEnglish: " + lesson.en + "\nTiếng Việt: " + lesson.vi + "\n\nGhi nhớ: " + lesson.tip + "\n\nBạn viết lại một câu của riêng bạn.";
+      memory.topic = lesson.title;
+      const who = memory.name ? memory.name + ", " : "";
+      return lesson.title + "\n\nEnglish: " + lesson.en + "\nTiếng Việt: " + lesson.vi + "\n\nGhi nhớ: " + lesson.tip + "\n\n" + who + lesson.ask;
     }
-    function chat(text) {
-      for (const rule of replies) {
-        const m = text.match(rule.test);
-        if (m) return typeof rule.say === "function" ? rule.say(m) : rule.say;
-      }
+    function localReply(text) {
+      remember(text);
       const fixed = correct(text);
-      if (fixed.notes.length) return "Mình hiểu ý bạn. Câu tự nhiên hơn:\n" + fixed.out + "\n\n" + fixed.notes.join("\n") + "\n\nCan you say one more sentence?";
-      return "I understand. Tell me a little more in English.\nVí dụ: I live in Dong Ha. I study English every evening.";
-    }
-    function reply(text) {
-      if (mode === "hoc") return teach(text);
-      if (mode === "sua") {
-        const fixed = correct(text);
-        if (!fixed.notes.length) return "Câu này ổn với các lỗi mình đang bắt:\n" + fixed.out + "\n\nThử một câu khác, ví dụ: He go to school.";
-        return "Câu sửa:\n" + fixed.out + "\n\n" + fixed.notes.join("\n");
+      const who = memory.name ? memory.name : "you";
+      if (mode === "hoc" && !/[a-z]{3}/i.test(text) || mode === "hoc" && lessons.some((l) => text.toLowerCase().includes(l.title.toLowerCase()))) return teach(text);
+      if (mode === "sua" || fixed.notes.length) {
+        const drill = fixed.notes.length ? "\n\nViết lại đúng câu này, rồi thêm một câu về hôm qua." : "\n\nCâu ổn với các lỗi mình đang bắt. Thử: She don't like rain.";
+        return "Câu sửa:\n" + fixed.out + (fixed.notes.length ? "\n\n" + fixed.notes.join("\n") : "") + drill;
       }
-      return chat(text);
+      if (/what.*your name|bạn tên|tên (bạn|mình)/i.test(text)) return "English: My name is Tutor.\nBạn thì sao? My name is ...";
+      if (/hello|hi\b|xin chào/i.test(text)) return "English: Hello" + (memory.name ? " " + memory.name : "") + ". How are you today?";
+      if (/how are you|khỏe không/i.test(text)) return "English: I am fine, thank you. And you?";
+      if (/bye|tạm biệt/i.test(text)) return "English: Goodbye" + (memory.name ? " " + memory.name : "") + ". Practice the " + memory.topic + " lesson tomorrow.";
+      return "English: I understand, " + who + ".\nChủ đề đang học: " + memory.topic + ".\nViết thêm một câu tiếng Anh. Nếu có lỗi, mình sẽ sửa và giải thích.";
+    }
+    async function modelReply(text) {
+      const base = localStorage.getItem("ai-base");
+      const model = localStorage.getItem("ai-model");
+      const key = localStorage.getItem("ai-key");
+      if (!base || !model || !key) return null;
+      const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
+        body: JSON.stringify({
+          model,
+          temperature: 0.4,
+          messages: [
+            { role: "system", content: "You are a patient English tutor for a Vietnamese learner. Reply with a short English model sentence, a Vietnamese explanation, and one follow-up question. Remember the learner name if given: " + (memory.name || "unknown") + ". Recent mistakes: " + memory.mistakes.slice(-3).join("; ") },
+            { role: "user", content: text }
+          ]
+        })
+      });
+      if (!res.ok) throw new Error("model từ chối");
+      const data = await res.json();
+      return data.choices[0].message.content;
     }
 
+    for (const id of ["base", "model", "key"]) {
+      const saved = localStorage.getItem("ai-" + id);
+      if (saved) document.querySelector("#" + id).value = saved;
+    }
+    document.querySelector("#open-key").onclick = () => document.querySelector("#settings").showModal();
+    document.querySelector("#settings").onclose = () => {
+      for (const id of ["base", "model", "key"]) localStorage.setItem("ai-" + id, document.querySelector("#" + id).value.trim());
+    };
     document.querySelectorAll("[data-mode]").forEach((btn) => {
       btn.onclick = () => {
         mode = btn.dataset.mode;
         document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b === btn));
         paintChips();
-        say(mode === "hoc" ? "Chế độ học. Chọn một bài hoặc gõ Bắt đầu." : mode === "sua" ? "Dán một câu tiếng Anh, mình sửa lỗi thường gặp." : "Chat tiếng Anh. Mình trả lời ngay trên trang này.", "bot");
+        say(mode === "hoc" ? "Chọn một bài. Mình nhớ tên và lỗi của bạn trong phiên này." : mode === "sua" ? "Đưa một câu tiếng Anh. Mình sửa, giải thích, rồi ra bài viết lại." : "Chat tiếng Anh. Mình bám chủ đề " + memory.topic + ".", "bot");
       };
     });
     document.querySelector("#mic").onclick = () => {
       const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!Rec) { say("Trình duyệt này không có nhận giọng nói. Dùng Chrome trên máy tính.", "bot"); return; }
+      if (!Rec) { say("Trình duyệt này không nhận giọng nói. Dùng Chrome.", "bot"); return; }
       const rec = new Rec();
       rec.lang = "en-US";
       rec.onresult = (e) => {
@@ -180,17 +225,19 @@
       rec.onerror = () => say("Không nghe được. Cho phép micro rồi thử lại.", "bot");
       rec.start();
     };
-    document.querySelector("#ask").onsubmit = (e) => {
+    document.querySelector("#ask").onsubmit = async (e) => {
       e.preventDefault();
       const box = document.querySelector("#q");
       const text = box.value.trim();
       if (!text) return;
       say(text, "user");
       box.value = "";
-      say(reply(text), "bot");
+      let answer = null;
+      try { answer = await modelReply(text); } catch (err) { answer = "Model không trả lời được, mình dùng gia sư trên trang.\n\n" + localReply(text); }
+      say(answer || localReply(text), "bot");
     };
     paintChips();
-    say("Mình đọc tiếng Anh bằng giọng trình duyệt. Bấm Nghe để nghe lại, bấm Nói rồi đọc câu tiếng Anh.\n\nHọc, Chat và Sửa câu vẫn chạy trên trang này.", "bot");
+    say("Gia sư này nhớ tên bạn, chủ đề đang học và lỗi vừa mắc, trong lúc trang còn mở.\n\nCó 8 bài, sửa nhiều lỗi người Việt hay gặp, rồi ra câu luyện tiếp. Bấm Nghe để nghe, Nói để đọc.\n\nMuốn câu chữ linh hoạt hơn, bấm Model và dán khóa API của bạn. Không có khóa vẫn học được.", "bot");
   </script>
 </body>
 </html>
