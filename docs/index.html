@@ -3,108 +3,176 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hỏi tài liệu — trang web</title>
+  <title>Trợ lý tổng quát</title>
   <style>
-    :root { --bg:#10140f; --panel:#1c2619; --line:#33442d; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
+    :root { --bg:#0e1210; --panel:#1a2218; --line:#31402c; --text:#e7f0e2; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(900px 380px at 10% -8%, #24331d, var(--bg)); }
-    header, main { width:min(980px, calc(100% - 28px)); margin:0 auto; }
-    header { padding:32px 0 12px; }
-    .eyebrow { margin:0 0 6px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
-    h1 { margin:0 0 8px; font-size:32px; }
-    p.lead { margin:0; color:var(--muted); max-width:62ch; }
-    main { display:grid; grid-template-columns:280px 1fr; gap:16px; padding:18px 0 36px; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; }
-    label.drop { display:grid; gap:4px; margin:12px 0; border:1px dashed var(--line); border-radius:12px; padding:14px; cursor:pointer; }
-    .meta { color:var(--muted); font-size:13px; }
-    #docs { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
-    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
-    .log { display:flex; flex-direction:column; gap:10px; min-height:280px; }
-    .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.45; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(1000px 420px at 8% -10%, #24331d, var(--bg)); }
+    header, main { width:min(860px, calc(100% - 28px)); margin:0 auto; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:12px; padding:28px 0 12px; }
+    h1 { margin:0; font-size:28px; }
+    .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
+    button, .ghost { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
+    .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
+    main { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; min-height:70vh; display:flex; flex-direction:column; }
+    #log { flex:1; display:flex; flex-direction:column; gap:10px; overflow:auto; max-height:62vh; }
+    .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.5; }
     .user { align-self:end; background:#2c3b22; max-width:85%; }
     .bot { background:#12180f; border:1px solid var(--line); }
+    .src { color:var(--muted); font-size:12px; margin-top:8px; }
     form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:12px; }
-    textarea, input[type=file] { font:inherit; }
-    textarea { resize:vertical; border-radius:12px; border:1px solid var(--line); background:#10160e; color:var(--text); padding:10px 12px; }
-    @media (max-width:800px) { main { grid-template-columns:1fr; } }
+    textarea, input { font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+    textarea { resize:vertical; }
+    dialog { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:16px; width:min(480px, 92vw); }
+    dialog label { display:grid; gap:4px; margin:10px 0; font-size:14px; }
+    .hint { color:var(--muted); font-size:13px; }
   </style>
 </head>
 <body>
   <header>
-    <p class="eyebrow">Trang web công khai</p>
-    <h1>Hỏi trên tài liệu của bạn</h1>
-    <p class="lead">Trang này chạy ngay trên trình duyệt. Tài liệu không gửi lên máy chủ. Đã nạp sẵn một văn bản mẫu để hỏi thử.</p>
+    <div>
+      <p class="eyebrow">Thay trang hỏi tài liệu</p>
+      <h1>Trợ lý tổng quát</h1>
+    </div>
+    <button class="ghost" id="open-settings" type="button">Khóa API</button>
   </header>
   <main>
-    <section class="panel">
-      <h2>Tài liệu</h2>
-      <label class="drop">
-        <input id="file" type="file" accept=".txt,.md" hidden />
-        <strong>Chọn file .txt hoặc .md</strong>
-        <span class="meta">File chỉ nằm trên máy bạn</span>
-      </label>
-      <ul id="docs"></ul>
-    </section>
-    <section class="panel">
-      <h2>Hỏi đáp</h2>
-      <div id="log" class="log"></div>
-      <form id="ask">
-        <textarea id="q" rows="2" placeholder="Ví dụ: được nghỉ phép năm bao nhiêu ngày?"></textarea>
-        <button type="submit">Hỏi</button>
-      </form>
-    </section>
+    <div id="log"></div>
+    <form id="ask">
+      <textarea id="q" rows="2" placeholder="Hỏi bất kỳ điều gì, ví dụ: thủ đô của Việt Nam là gì?"></textarea>
+      <button type="submit">Hỏi</button>
+    </form>
   </main>
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>Model của bạn</h2>
+      <p class="hint">Để trống thì trang chỉ tra Wikipedia. Khóa lưu trên trình duyệt này, không gửi lên GitHub.</p>
+      <label>Địa chỉ API
+        <input id="base" placeholder="https://api.x.ai/v1" />
+      </label>
+      <label>Model
+        <input id="model" placeholder="grok-3" />
+      </label>
+      <label>API key
+        <input id="key" type="password" placeholder="xai-..." />
+      </label>
+      <button type="submit">Lưu</button>
+    </form>
+  </dialog>
   <script>
-    const docs = [{
-      title: "Chính sách nghỉ phép (mẫu)",
-      text: "Nhân viên chính thức được 12 ngày phép năm sau khi thử việc. Phép tồn cuối năm được chuyển tối đa 5 ngày sang quý I năm sau. Nghỉ ốm có giấy của cơ sở y tế không trừ phép năm, tối đa 30 ngày mỗi năm. Nghỉ không lương cần đơn trước 3 ngày làm việc và được quản lý trực tiếp duyệt. Thai sản được 6 tháng theo luật, có thể nghỉ thêm không lương 2 tháng nếu báo trước 30 ngày."
-    }];
-    const docsEl = document.querySelector("#docs");
-    const logEl = document.querySelector("#log");
-
-    function paintDocs() {
-      docsEl.innerHTML = docs.map((d) => "<li><strong>" + d.title + "</strong><div class='meta'>" + d.text.length + " ký tự</div></li>").join("");
+    const log = document.querySelector("#log");
+    const settings = document.querySelector("#settings");
+    const fields = ["base", "model", "key"];
+    for (const id of fields) {
+      const saved = localStorage.getItem("ai-" + id);
+      if (saved) document.querySelector("#" + id).value = saved;
     }
-    function say(text, who) {
+    document.querySelector("#open-settings").onclick = () => settings.showModal();
+    settings.onclose = () => {
+      for (const id of fields) localStorage.setItem("ai-" + id, document.querySelector("#" + id).value.trim());
+    };
+
+    function say(text, who, sources) {
       const div = document.createElement("div");
       div.className = "bubble " + who;
       div.textContent = text;
-      logEl.appendChild(div);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
-    function answer(question) {
-      const words = question.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
-      let best = null, score = 0;
-      for (const d of docs) {
-        const sentences = d.text.split(/(?<=[.!?])\s+/);
-        for (const s of sentences) {
-          const low = s.toLowerCase();
-          const n = words.filter((w) => low.includes(w)).length;
-          if (n > score) { score = n; best = { title: d.title, text: s }; }
-        }
+      if (sources && sources.length) {
+        const s = document.createElement("div");
+        s.className = "src";
+        s.innerHTML = sources.map((x) => '<a href="' + x.url + '" target="_blank" rel="noopener">' + x.title + "</a>").join(" · ");
+        div.appendChild(s);
       }
-      if (!best || score === 0) return "Không thấy câu nào khớp trong tài liệu đang mở.";
-      return best.text + "\n\nNguồn: " + best.title;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
     }
-    document.querySelector("#file").onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      docs.push({ title: file.name, text: await file.text() });
-      e.target.value = "";
-      paintDocs();
-      say("Đã thêm " + file.name + ". Hỏi theo nội dung file đó.", "bot");
-    };
-    document.querySelector("#ask").onsubmit = (e) => {
+
+    async function wiki(lang, question) {
+      const search = new URL("https://" + lang + ".wikipedia.org/w/api.php");
+      search.searchParams.set("action", "query");
+      search.searchParams.set("list", "search");
+      search.searchParams.set("srsearch", question);
+      search.searchParams.set("srlimit", "3");
+      search.searchParams.set("format", "json");
+      search.searchParams.set("origin", "*");
+      const found = await fetch(search).then((r) => r.json());
+      const hits = (found.query && found.query.search) || [];
+      const out = [];
+      for (const hit of hits) {
+        const page = new URL("https://" + lang + ".wikipedia.org/w/api.php");
+        page.searchParams.set("action", "query");
+        page.searchParams.set("prop", "extracts");
+        page.searchParams.set("exintro", "1");
+        page.searchParams.set("explaintext", "1");
+        page.searchParams.set("titles", hit.title);
+        page.searchParams.set("format", "json");
+        page.searchParams.set("origin", "*");
+        const body = await fetch(page).then((r) => r.json());
+        const pages = body.query.pages || {};
+        const first = Object.values(pages)[0];
+        if (!first || !first.extract) continue;
+        out.push({
+          title: first.title + " (" + lang + ")",
+          text: first.extract.slice(0, 700),
+          url: "https://" + lang + ".wikipedia.org/wiki/" + encodeURIComponent(first.title.replace(/ /g, "_"))
+        });
+      }
+      return out;
+    }
+
+    async function lookup(question) {
+      const vi = await wiki("vi", question);
+      if (vi.length) return vi;
+      return wiki("en", question);
+    }
+
+    async function modelAnswer(question, sources) {
+      const base = localStorage.getItem("ai-base");
+      const model = localStorage.getItem("ai-model");
+      const key = localStorage.getItem("ai-key");
+      if (!base || !model || !key) return null;
+      const context = sources.map((s, i) => "[" + (i + 1) + "] " + s.title + "\n" + s.text).join("\n\n");
+      const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
+        body: JSON.stringify({
+          model,
+          temperature: 0.2,
+          messages: [
+            { role: "system", content: "Trả lời tiếng Việt, ngắn, dựa trên nguồn nếu có. Nếu nguồn không đủ, nói rõ phần nào là suy luận." },
+            { role: "user", content: "NGUỒN:\n" + context + "\n\nCÂU HỎI: " + question }
+          ]
+        })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    document.querySelector("#ask").onsubmit = async (e) => {
       e.preventDefault();
-      const q = document.querySelector("#q");
-      const question = q.value.trim();
+      const box = document.querySelector("#q");
+      const question = box.value.trim();
       if (!question) return;
       say(question, "user");
-      q.value = "";
-      say(answer(question), "bot");
+      box.value = "";
+      say("Đang tra cứu…", "bot");
+      try {
+        const sources = await lookup(question);
+        let text;
+        try { text = await modelAnswer(question, sources); } catch (err) { text = "Không gọi được model: " + err.message; }
+        if (!text) {
+          text = sources.length
+            ? sources.map((s, i) => "[" + (i + 1) + "] " + s.title + "\n" + s.text).join("\n\n")
+            : "Không tìm thấy trang Wikipedia khớp. Thêm khóa API trong nút Khóa API để model viết câu trả lời.";
+        }
+        log.lastChild.remove();
+        say(text, "bot", sources);
+      } catch (err) {
+        log.lastChild.remove();
+        say("Lỗi tra cứu: " + err.message, "bot");
+      }
     };
-    paintDocs();
-    say("Trang đã mở. Hỏi thử: được nghỉ phép năm bao nhiêu ngày?", "bot");
+    say("Hỏi một câu bất kỳ. Trang tra Wikipedia tiếng Việt, rồi tiếng Anh. Muốn câu trả lời do model viết, bấm Khóa API và dán khóa của bạn (ví dụ API xAI). Trang này không gọi được Grok trong cuộc chat.", "bot");
   </script>
 </body>
 </html>
