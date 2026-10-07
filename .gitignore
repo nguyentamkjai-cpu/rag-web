@@ -1,0 +1,4 @@
+.venv/
+__pycache__/
+data/index.joblib
+data/docs.json

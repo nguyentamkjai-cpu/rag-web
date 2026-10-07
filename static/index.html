@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG Web — hỏi trên tài liệu của bạn</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">Open-source RAG</p>
+      <h1>Hỏi đáp trên tài liệu của bạn</h1>
+    </div>
+    <span id="mode" class="pill">đang kiểm tra…</span>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>Tài liệu</h2>
+      <label class="drop">
+        <input id="file" type="file" accept=".txt,.md,.pdf" hidden />
+        <strong>Thả hoặc chọn file</strong>
+        <span>.txt, .md, .pdf — tối đa 15 MB</span>
+      </label>
+      <ul id="docs"></ul>
+    </section>
+    <section class="panel chat">
+      <h2>Hỏi đáp</h2>
+      <div id="log" class="log"></div>
+      <form id="ask">
+        <textarea id="q" rows="2" placeholder="Ví dụ: chính sách nghỉ phép được nêu thế nào?"></textarea>
+        <button type="submit">Hỏi</button>
+      </form>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
