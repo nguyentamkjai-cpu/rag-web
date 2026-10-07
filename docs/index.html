@@ -21,9 +21,10 @@
     .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.5; }
     .user { align-self:end; background:#2c3b22; max-width:85%; }
     .bot { background:#12180f; border:1px solid var(--line); }
-    form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:12px; }
+    form { display:grid; grid-template-columns:1fr auto auto; gap:8px; margin-top:12px; }
     textarea { resize:vertical; font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
     .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .hear { margin-top:8px; padding:6px 8px; }
   </style>
 </head>
 <body>
@@ -42,7 +43,8 @@
     <div id="log"></div>
     <div class="chips" id="chips"></div>
     <form id="ask">
-      <textarea id="q" rows="2" placeholder="Viết tiếng Anh hoặc hỏi bằng tiếng Việt…"></textarea>
+      <textarea id="q" rows="2" placeholder="Viết hoặc bấm Nói…"></textarea>
+      <button type="button" id="mic" class="ghost">Nói</button>
       <button type="submit">Gửi</button>
     </form>
   </main>
@@ -75,10 +77,30 @@
     const log = document.querySelector("#log");
     const chips = document.querySelector("#chips");
 
+    function speak(text) {
+      if (!window.speechSynthesis) return;
+      const line = (text.match(/English: (.+)/) || [null, text])[1];
+      const utter = new SpeechSynthesisUtterance(line);
+      utter.lang = "en-US";
+      utter.rate = 0.9;
+      const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
+      if (voice) utter.voice = voice;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
+    }
     function say(text, who) {
       const div = document.createElement("div");
       div.className = "bubble " + who;
       div.textContent = text;
+      if (who === "bot") {
+        const hear = document.createElement("button");
+        hear.className = "ghost hear";
+        hear.type = "button";
+        hear.textContent = "Nghe";
+        hear.onclick = () => speak(text);
+        div.appendChild(hear);
+        speak(text);
+      }
       log.appendChild(div);
       log.scrollTop = log.scrollHeight;
     }
@@ -146,6 +168,18 @@
         say(mode === "hoc" ? "Chế độ học. Chọn một bài hoặc gõ Bắt đầu." : mode === "sua" ? "Dán một câu tiếng Anh, mình sửa lỗi thường gặp." : "Chat tiếng Anh. Mình trả lời ngay trên trang này.", "bot");
       };
     });
+    document.querySelector("#mic").onclick = () => {
+      const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Rec) { say("Trình duyệt này không có nhận giọng nói. Dùng Chrome trên máy tính.", "bot"); return; }
+      const rec = new Rec();
+      rec.lang = "en-US";
+      rec.onresult = (e) => {
+        document.querySelector("#q").value = e.results[0][0].transcript;
+        document.querySelector("#ask").requestSubmit();
+      };
+      rec.onerror = () => say("Không nghe được. Cho phép micro rồi thử lại.", "bot");
+      rec.start();
+    };
     document.querySelector("#ask").onsubmit = (e) => {
       e.preventDefault();
       const box = document.querySelector("#q");
@@ -156,7 +190,7 @@
       say(reply(text), "bot");
     };
     paintChips();
-    say("Mình là gia sư trên chính trang web này, không cần gọi Grok.\n\nHọc: 5 bài ngắn.\nChat: hội thoại tiếng Anh.\nSửa câu: bắt lỗi thường gặp của người Việt.\n\nChọn Chào hỏi hoặc gõ Bắt đầu.", "bot");
+    say("Mình đọc tiếng Anh bằng giọng trình duyệt. Bấm Nghe để nghe lại, bấm Nói rồi đọc câu tiếng Anh.\n\nHọc, Chat và Sửa câu vẫn chạy trên trang này.", "bot");
   </script>
 </body>
 </html>
