@@ -3,163 +3,141 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gia sư AI tiếng Anh</title>
+  <title>Dịch — kiểu Google Dịch</title>
   <style>
-    :root { --bg:#10140f; --panel:#1a2218; --line:#31402c; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
+    :root { --bg:#f8f9fa; --card:#fff; --line:#dadce0; --text:#202124; --muted:#5f6368; --blue:#1a73e8; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(980px 400px at 8% -10%, #24331d, var(--bg)); }
-    header, main { width:min(880px, calc(100% - 28px)); margin:0 auto; }
-    header { padding:26px 0 10px; display:flex; justify-content:space-between; align-items:end; gap:12px; }
+    body { margin:0; font-family:"Segoe UI", Arial, sans-serif; color:var(--text); background:var(--bg); }
+    header, main { width:min(980px, calc(100% - 24px)); margin:0 auto; }
+    header { padding:22px 0 8px; }
     h1 { margin:0; font-size:28px; }
-    .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
-    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 14px; cursor:pointer; }
-    .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
-    main { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; min-height:72vh; display:flex; flex-direction:column; }
-    #log { flex:1; display:flex; flex-direction:column; gap:10px; overflow:auto; max-height:60vh; }
-    .bubble { padding:12px 14px; border-radius:12px; white-space:pre-wrap; line-height:1.5; }
-    .user { align-self:end; background:#2c3b22; max-width:85%; }
-    .bot { background:#12180f; border:1px solid var(--line); }
-    form, .setup { display:grid; gap:8px; margin-top:12px; }
-    form { grid-template-columns:1fr auto auto; }
-    textarea, input { font:inherit; color:var(--text); background:#10160e; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
-    textarea { resize:vertical; }
-    .hear { margin-top:8px; padding:6px 8px; }
-    .hint { color:var(--muted); font-size:13px; margin:0; }
+    p { color:var(--muted); margin:6px 0 0; }
+    .box { display:grid; grid-template-columns:1fr 1fr; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-top:16px; }
+    .pane { padding:14px; min-height:280px; display:flex; flex-direction:column; gap:10px; }
+    .pane + .pane { border-left:1px solid var(--line); background:#fafafa; }
+    select, textarea, button { font:inherit; }
+    select { border:0; background:transparent; color:var(--blue); font-weight:650; padding:4px; }
+    textarea { flex:1; border:0; resize:none; outline:none; background:transparent; font-size:20px; line-height:1.45; }
+    .bar { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+    button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 12px; cursor:pointer; }
+    button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+    .status { color:var(--muted); font-size:13px; padding:8px 2px 20px; }
+    @media (max-width:760px) { .box { grid-template-columns:1fr; } .pane + .pane { border-left:0; border-top:1px solid var(--line); } }
   </style>
 </head>
 <body>
   <header>
-    <div>
-      <p class="eyebrow">AI tiếng Anh · nhớ hội thoại · có giọng</p>
-      <h1>Gia sư AI</h1>
-    </div>
-    <button class="ghost" id="reset" type="button">Đổi khóa</button>
+    <h1>Dịch ngôn ngữ</h1>
+    <p>Nhập câu nước ngoài, trang lấy bản dịch từ Google Dịch.</p>
   </header>
   <main>
-    <div id="log"></div>
-    <div class="setup" id="setup">
-      <p class="hint">Trang gọi AI của bạn. Khóa chỉ lưu trên trình duyệt này, không lên GitHub. Mặc định là API xAI.</p>
-      <input id="base" placeholder="https://api.x.ai/v1" />
-      <input id="model" placeholder="grok-3" />
-      <input id="key" type="password" placeholder="Dán API key" />
-      <button type="button" id="save">Bắt đầu học với AI</button>
+    <div class="box">
+      <section class="pane">
+        <div class="bar">
+          <select id="from"></select>
+          <button type="button" id="speak-in">Nghe</button>
+        </div>
+        <textarea id="input" placeholder="Nhập chữ cần dịch"></textarea>
+      </section>
+      <section class="pane">
+        <div class="bar">
+          <select id="to"></select>
+          <span>
+            <button type="button" id="swap">Đổi chiều</button>
+            <button type="button" id="speak-out">Nghe</button>
+            <button type="button" id="copy">Chép</button>
+          </span>
+        </div>
+        <textarea id="output" readonly placeholder="Bản dịch"></textarea>
+      </section>
     </div>
-    <form id="ask" hidden>
-      <textarea id="q" rows="2" placeholder="Viết hoặc bấm Nói…"></textarea>
-      <button type="button" id="mic" class="ghost">Nói</button>
-      <button type="submit">Gửi</button>
-    </form>
+    <div class="status" id="status">Sẵn sàng.</div>
   </main>
   <script>
-    const history = [{ role: "system", content: "Bạn là gia sư tiếng Anh cho người Việt. Mỗi lượt: một câu mẫu tiếng Anh, giải thích ngắn bằng tiếng Việt, rồi một câu hỏi để học viên nói tiếp. Sửa lỗi ngữ pháp nếu có. Giữ mạch hội thoại. Không bịa khóa API hay trang web." }];
-    const log = document.querySelector("#log");
-    const setup = document.querySelector("#setup");
-    const askForm = document.querySelector("#ask");
-
-    function cfg() {
-      return {
-        base: localStorage.getItem("ai-base") || "",
-        model: localStorage.getItem("ai-model") || "",
-        key: localStorage.getItem("ai-key") || ""
-      };
+    const languages = [
+      ["auto", "Tự nhận ngôn ngữ"],
+      ["vi", "Tiếng Việt"],
+      ["en", "English"],
+      ["zh-CN", "中文"],
+      ["ja", "日本語"],
+      ["ko", "한국어"],
+      ["fr", "Français"],
+      ["de", "Deutsch"],
+      ["es", "Español"],
+      ["th", "ไทย"],
+      ["lo", "ລາວ"],
+      ["km", "ភាសាខ្មែរ"],
+      ["ru", "Русский"],
+      ["id", "Indonesia"]
+    ];
+    const from = document.querySelector("#from");
+    const to = document.querySelector("#to");
+    const input = document.querySelector("#input");
+    const output = document.querySelector("#output");
+    const status = document.querySelector("#status");
+    for (const [code, name] of languages) {
+      from.add(new Option(name, code));
+      if (code !== "auto") to.add(new Option(name, code));
     }
-    function speak(text) {
-      if (!window.speechSynthesis) return;
-      const english = (text.match(/English: ([^\n]+)/) || [null, text.split("\n")[0]])[1];
-      const utter = new SpeechSynthesisUtterance(english);
-      utter.lang = "en-US";
-      utter.rate = 0.9;
-      const voice = speechSynthesis.getVoices().find((v) => /^en/i.test(v.lang));
-      if (voice) utter.voice = voice;
+    from.value = "auto";
+    to.value = "vi";
+
+    function speak(text, lang) {
+      if (!text || !window.speechSynthesis) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang === "auto" ? "en-US" : lang;
       speechSynthesis.cancel();
       speechSynthesis.speak(utter);
     }
-    function say(text, who) {
-      const div = document.createElement("div");
-      div.className = "bubble " + who;
-      div.textContent = text;
-      if (who === "bot") {
-        const hear = document.createElement("button");
-        hear.className = "ghost hear";
-        hear.type = "button";
-        hear.textContent = "Nghe";
-        hear.onclick = () => speak(text);
-        div.appendChild(hear);
-        speak(text);
-      }
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
-    }
-    function showChat(on) {
-      setup.hidden = on;
-      askForm.hidden = !on;
-    }
-    async function ai(text) {
-      const { base, model, key } = cfg();
-      history.push({ role: "user", content: text });
-      const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
-        body: JSON.stringify({ model, temperature: 0.4, messages: history.slice(-12) })
-      });
+    async function google(text, source, target) {
+      const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl="
+        + encodeURIComponent(source) + "&tl=" + encodeURIComponent(target) + "&q=" + encodeURIComponent(text);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Google " + res.status);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error && data.error.message ? data.error.message : "AI từ chối yêu cầu");
-      const answer = data.choices[0].message.content;
-      history.push({ role: "assistant", content: answer });
-      return answer;
+      const translated = data[0].map((part) => part[0]).join("");
+      const detected = data[2] || source;
+      return { translated, detected, via: "Google Dịch" };
     }
-    document.querySelector("#save").onclick = () => {
-      localStorage.setItem("ai-base", document.querySelector("#base").value.trim() || "https://api.x.ai/v1");
-      localStorage.setItem("ai-model", document.querySelector("#model").value.trim() || "grok-3");
-      localStorage.setItem("ai-key", document.querySelector("#key").value.trim());
-      if (!cfg().key) { say("Cần API key thì trang mới gọi được AI.", "bot"); return; }
-      showChat(true);
-      say("AI đã sẵn sàng. English: Hello, I am your tutor. What is your name?", "bot");
-    };
-    document.querySelector("#reset").onclick = () => {
-      localStorage.removeItem("ai-key");
-      showChat(false);
-    };
-    document.querySelector("#mic").onclick = () => {
-      const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!Rec) { say("Dùng Chrome để nói.", "bot"); return; }
-      const rec = new Rec();
-      rec.lang = "en-US";
-      rec.onresult = (e) => {
-        document.querySelector("#q").value = e.results[0][0].transcript;
-        askForm.requestSubmit();
-      };
-      rec.onerror = () => say("Không nghe được. Cho phép micro rồi thử lại.", "bot");
-      rec.start();
-    };
-    askForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const box = document.querySelector("#q");
-      const text = box.value.trim();
-      if (!text) return;
-      say(text, "user");
-      box.value = "";
-      say("AI đang trả lời…", "bot");
+    async function lingva(text, source, target) {
+      const sl = source === "auto" ? "auto" : source;
+      const url = "https://lingva.ml/api/v1/" + encodeURIComponent(sl) + "/" + encodeURIComponent(target) + "/" + encodeURIComponent(text);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Lingva " + res.status);
+      const data = await res.json();
+      if (!data.translation) throw new Error("không có bản dịch");
+      return { translated: data.translation, detected: sl, via: "Google Dịch qua Lingva" };
+    }
+    let timer;
+    async function translate() {
+      const text = input.value.trim();
+      if (!text) { output.value = ""; status.textContent = "Sẵn sàng."; return; }
+      status.textContent = "Đang lấy bản dịch từ Google…";
       try {
-        const answer = await ai(text);
-        log.lastChild.remove();
-        say(answer, "bot");
+        let result;
+        try { result = await google(text, from.value, to.value); }
+        catch { result = await lingva(text, from.value, to.value); }
+        output.value = result.translated;
+        status.textContent = result.via + (result.detected && result.detected !== "auto" ? " · nhận ra " + result.detected : "");
       } catch (err) {
-        log.lastChild.remove();
-        history.pop();
-        say("Không gọi được AI: " + err.message + "\nKiểm tra khóa, model và địa chỉ API.", "bot");
+        output.value = "";
+        status.textContent = "Không lấy được Google Dịch từ trang này: " + err.message;
       }
-    };
-    const saved = cfg();
-    document.querySelector("#base").value = saved.base || "https://api.x.ai/v1";
-    document.querySelector("#model").value = saved.model || "grok-3";
-    if (saved.key) {
-      document.querySelector("#key").value = saved.key;
-      showChat(true);
-      say("Đã có khóa trên trình duyệt này. English: Hello again. What do you want to practice?", "bot");
-    } else {
-      say("Trang này dùng AI qua API của bạn. Dán khóa, rồi học, chat và sửa câu đều do model trả lời. Nghe và Nói vẫn có.", "bot");
     }
+    input.oninput = () => { clearTimeout(timer); timer = setTimeout(translate, 400); };
+    from.onchange = translate;
+    to.onchange = translate;
+    document.querySelector("#swap").onclick = () => {
+      if (from.value === "auto") from.value = "en";
+      const next = from.value;
+      from.value = to.value;
+      to.value = next;
+      input.value = output.value;
+      translate();
+    };
+    document.querySelector("#copy").onclick = () => navigator.clipboard.writeText(output.value || "");
+    document.querySelector("#speak-in").onclick = () => speak(input.value, from.value);
+    document.querySelector("#speak-out").onclick = () => speak(output.value, to.value);
   </script>
 </body>
 </html>
