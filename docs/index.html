@@ -3,141 +3,116 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dịch — kiểu Google Dịch</title>
+  <title>AI học từ mạng xã hội</title>
   <style>
-    :root { --bg:#f8f9fa; --card:#fff; --line:#dadce0; --text:#202124; --muted:#5f6368; --blue:#1a73e8; }
+    :root { --bg:#10140f; --panel:#1a2218; --line:#31402c; --text:#e8f2e3; --muted:#9aaf92; --accent:#c6f25d; --ink:#17200c; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:"Segoe UI", Arial, sans-serif; color:var(--text); background:var(--bg); }
-    header, main { width:min(980px, calc(100% - 24px)); margin:0 auto; }
-    header { padding:22px 0 8px; }
-    h1 { margin:0; font-size:28px; }
-    p { color:var(--muted); margin:6px 0 0; }
-    .box { display:grid; grid-template-columns:1fr 1fr; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-top:16px; }
-    .pane { padding:14px; min-height:280px; display:flex; flex-direction:column; gap:10px; }
-    .pane + .pane { border-left:1px solid var(--line); background:#fafafa; }
-    select, textarea, button { font:inherit; }
-    select { border:0; background:transparent; color:var(--blue); font-weight:650; padding:4px; }
-    textarea { flex:1; border:0; resize:none; outline:none; background:transparent; font-size:20px; line-height:1.45; }
-    .bar { display:flex; justify-content:space-between; gap:8px; align-items:center; }
-    button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 12px; cursor:pointer; }
-    button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
-    .status { color:var(--muted); font-size:13px; padding:8px 2px 20px; }
-    @media (max-width:760px) { .box { grid-template-columns:1fr; } .pane + .pane { border-left:0; border-top:1px solid var(--line); } }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:var(--bg); }
+    header, main { width:min(1100px, calc(100% - 24px)); margin:0 auto; }
+    header { padding:24px 0 8px; }
+    h1, h2 { margin:0; }
+    .eyebrow { margin:0 0 4px; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
+    main { display:grid; grid-template-columns:320px 1fr; gap:14px; padding-bottom:28px; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; }
+    label, .hint { color:var(--muted); font-size:13px; }
+    textarea, input, select, button { font:inherit; }
+    textarea, input, select { width:100%; margin:6px 0 10px; border:1px solid var(--line); background:#10160e; color:var(--text); border-radius:10px; padding:8px 10px; }
+    button { border:0; border-radius:10px; background:var(--accent); color:var(--ink); font-weight:700; padding:10px 12px; cursor:pointer; }
+    .ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
+    ul { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    li { border-top:1px solid var(--line); padding-top:8px; }
+    #log { min-height:320px; display:flex; flex-direction:column; gap:8px; }
+    .bubble { padding:10px 12px; border-radius:12px; white-space:pre-wrap; line-height:1.45; }
+    .user { align-self:end; background:#2c3b22; }
+    .bot { background:#12180f; border:1px solid var(--line); }
+    form { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px; }
+    @media (max-width:800px) { main { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <header>
-    <h1>Dịch ngôn ngữ</h1>
-    <p>Nhập câu nước ngoài, trang lấy bản dịch từ Google Dịch.</p>
+    <p class="eyebrow">Cấu trúc web AI</p>
+    <h1>Học thêm từ mạng xã hội</h1>
   </header>
   <main>
-    <div class="box">
-      <section class="pane">
-        <div class="bar">
-          <select id="from"></select>
-          <button type="button" id="speak-in">Nghe</button>
-        </div>
-        <textarea id="input" placeholder="Nhập chữ cần dịch"></textarea>
-      </section>
-      <section class="pane">
-        <div class="bar">
-          <select id="to"></select>
-          <span>
-            <button type="button" id="swap">Đổi chiều</button>
-            <button type="button" id="speak-out">Nghe</button>
-            <button type="button" id="copy">Chép</button>
-          </span>
-        </div>
-        <textarea id="output" readonly placeholder="Bản dịch"></textarea>
-      </section>
-    </div>
-    <div class="status" id="status">Sẵn sàng.</div>
+    <section>
+      <h2>1. Nguồn</h2>
+      <label>Nền tảng</label>
+      <select id="platform">
+        <option>X</option>
+        <option>Facebook</option>
+        <option>Threads</option>
+        <option>RSS</option>
+        <option>Khác</option>
+      </select>
+      <label>Dán bài viết công khai</label>
+      <textarea id="post" rows="6" placeholder="Dán nội dung một bài công khai, hoặc đường dẫn bài."></textarea>
+      <button id="learn" type="button">Đưa vào bộ nhớ</button>
+      <p class="hint">Trang không đăng nhập hộ và không lấy bài riêng tư. Bạn chỉ đưa nội dung được phép dùng.</p>
+      <h2 style="margin-top:16px">2. Đã học</h2>
+      <ul id="memory"></ul>
+    </section>
+    <section>
+      <h2>3. Hỏi AI trên kiến thức vừa học</h2>
+      <div id="log"></div>
+      <form id="ask">
+        <input id="q" placeholder="Hỏi từ những bài đã dán" />
+        <button type="submit">Hỏi</button>
+      </form>
+    </section>
   </main>
   <script>
-    const languages = [
-      ["auto", "Tự nhận ngôn ngữ"],
-      ["vi", "Tiếng Việt"],
-      ["en", "English"],
-      ["zh-CN", "中文"],
-      ["ja", "日本語"],
-      ["ko", "한국어"],
-      ["fr", "Français"],
-      ["de", "Deutsch"],
-      ["es", "Español"],
-      ["th", "ไทย"],
-      ["lo", "ລາວ"],
-      ["km", "ភាសាខ្មែរ"],
-      ["ru", "Русский"],
-      ["id", "Indonesia"]
-    ];
-    const from = document.querySelector("#from");
-    const to = document.querySelector("#to");
-    const input = document.querySelector("#input");
-    const output = document.querySelector("#output");
-    const status = document.querySelector("#status");
-    for (const [code, name] of languages) {
-      from.add(new Option(name, code));
-      if (code !== "auto") to.add(new Option(name, code));
+    const key = "social-memory";
+    const memory = JSON.parse(localStorage.getItem(key) || "[]");
+    const list = document.querySelector("#memory");
+    const log = document.querySelector("#log");
+    function save() { localStorage.setItem(key, JSON.stringify(memory)); }
+    function paint() {
+      list.innerHTML = memory.length ? "" : "<li class='hint'>Chưa có bài nào.</li>";
+      memory.forEach((item, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = "<strong>" + item.platform + "</strong><div class='hint'>" + item.text.slice(0, 120) + "</div>";
+        const btn = document.createElement("button");
+        btn.className = "ghost";
+        btn.textContent = "Xóa";
+        btn.onclick = () => { memory.splice(i, 1); save(); paint(); };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
     }
-    from.value = "auto";
-    to.value = "vi";
-
-    function speak(text, lang) {
-      if (!text || !window.speechSynthesis) return;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang === "auto" ? "en-US" : lang;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utter);
+    function say(text, who) {
+      const div = document.createElement("div");
+      div.className = "bubble " + who;
+      div.textContent = text;
+      log.appendChild(div);
     }
-    async function google(text, source, target) {
-      const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl="
-        + encodeURIComponent(source) + "&tl=" + encodeURIComponent(target) + "&q=" + encodeURIComponent(text);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Google " + res.status);
-      const data = await res.json();
-      const translated = data[0].map((part) => part[0]).join("");
-      const detected = data[2] || source;
-      return { translated, detected, via: "Google Dịch" };
+    function answer(question) {
+      const words = question.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+      const ranked = memory.map((item) => {
+        const low = item.text.toLowerCase();
+        return { item, score: words.filter((w) => low.includes(w)).length };
+      }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
+      if (!ranked.length) return "Chưa thấy ý này trong bài đã học. Dán thêm bài công khai liên quan.";
+      return ranked.map((x, i) => "[" + (i + 1) + "] " + x.item.platform + "\n" + x.item.text.slice(0, 280)).join("\n\n");
     }
-    async function lingva(text, source, target) {
-      const sl = source === "auto" ? "auto" : source;
-      const url = "https://lingva.ml/api/v1/" + encodeURIComponent(sl) + "/" + encodeURIComponent(target) + "/" + encodeURIComponent(text);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Lingva " + res.status);
-      const data = await res.json();
-      if (!data.translation) throw new Error("không có bản dịch");
-      return { translated: data.translation, detected: sl, via: "Google Dịch qua Lingva" };
-    }
-    let timer;
-    async function translate() {
-      const text = input.value.trim();
-      if (!text) { output.value = ""; status.textContent = "Sẵn sàng."; return; }
-      status.textContent = "Đang lấy bản dịch từ Google…";
-      try {
-        let result;
-        try { result = await google(text, from.value, to.value); }
-        catch { result = await lingva(text, from.value, to.value); }
-        output.value = result.translated;
-        status.textContent = result.via + (result.detected && result.detected !== "auto" ? " · nhận ra " + result.detected : "");
-      } catch (err) {
-        output.value = "";
-        status.textContent = "Không lấy được Google Dịch từ trang này: " + err.message;
-      }
-    }
-    input.oninput = () => { clearTimeout(timer); timer = setTimeout(translate, 400); };
-    from.onchange = translate;
-    to.onchange = translate;
-    document.querySelector("#swap").onclick = () => {
-      if (from.value === "auto") from.value = "en";
-      const next = from.value;
-      from.value = to.value;
-      to.value = next;
-      input.value = output.value;
-      translate();
+    document.querySelector("#learn").onclick = () => {
+      const text = document.querySelector("#post").value.trim();
+      if (!text) return;
+      memory.unshift({ platform: document.querySelector("#platform").value, text, at: new Date().toISOString() });
+      document.querySelector("#post").value = "";
+      save();
+      paint();
     };
-    document.querySelector("#copy").onclick = () => navigator.clipboard.writeText(output.value || "");
-    document.querySelector("#speak-in").onclick = () => speak(input.value, from.value);
-    document.querySelector("#speak-out").onclick = () => speak(output.value, to.value);
+    document.querySelector("#ask").onsubmit = (e) => {
+      e.preventDefault();
+      const q = document.querySelector("#q");
+      if (!q.value.trim()) return;
+      say(q.value.trim(), "user");
+      say(answer(q.value.trim()), "bot");
+      q.value = "";
+    };
+    paint();
+    say("Cấu trúc trang: Nguồn để nạp bài, Đã học để xem bộ nhớ, Hỏi để tra trên đúng phần đã nạp.", "bot");
   </script>
 </body>
 </html>
